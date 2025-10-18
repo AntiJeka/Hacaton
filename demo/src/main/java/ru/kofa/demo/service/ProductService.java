@@ -8,9 +8,11 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import ru.kofa.demo.enums.UnfriendlyCountry;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class ProductService implements IProductService {
@@ -22,7 +24,6 @@ public class ProductService implements IProductService {
     private boolean order;
     private final int[] production = new int[3];
     private final int[] consumption = new int[3];
-    private final ArrayList<Double> countrySkts = new ArrayList<>();
     private final ArrayList<String> country = new ArrayList<>();
     private final ArrayList<Integer> year2022 = new ArrayList<>();
     private final ArrayList<Integer> year2023 = new ArrayList<>();
@@ -31,101 +32,311 @@ public class ProductService implements IProductService {
     @Override
     public Map<String, Object> analytics(String codeEas) {
         Map<String, Object> result = new HashMap<>();
-        List<String> measuresList = new ArrayList<>();
+        List<Map<String, Object>> measuresList = new ArrayList<>();
 
         setProduct(initializationProduct(codeEas));
         if (product != null) {
+            clearArrays();
             initializationYearProduct();
             initializationData();
 
-            Set<String> arrResult = new HashSet<>();
-            for (int i = 1; i < year2022.size(); i++) {
-                int a = year2022.get(i);
-                int b = year2023.get(i);
-                int c = year2024.get(i);
+            result.put("productName", product);
+            result.put("customsDutyRate", dutyRates / 1000.0 + "%");
+            result.put("wtoDutyRate", dutyRatesBto / 1000.0 + "%");
+            result.put("certification", certification ? "Да" : "Нет");
+            result.put("governmentPurchases", purchases ? "Да" : "Нет");
+            result.put("ministryOrder", order ? "Да" : "Нет");
 
-                if (a < b && b < c && c / year2024.getFirst() * 100 >= 30) {
-                    if (production[2] >= consumption[2]) {
-                        arrResult.add("Мера 2: Введение специальных защитных мер");
-                    } else {
-                        arrResult.add("Мера 6: Поддержка экспорта продукции");
-                    }
-                } else {
-                    if (dutyRates > dutyRatesBto && production[2] >= consumption[2]) {
-                        arrResult.add("Мера 1: Снижение ставки ввозной таможенной пошлины");
-                    } else if (dutyRates > dutyRatesBto && production[2] < consumption[2]) {
-                        arrResult.add("Мера 6: Поддержка экспорта продукции");
-                    } else if (dutyRates == dutyRatesBto && production[2] < consumption[2]) {
-                        initializationCountrySkts();
-                        int[] weight = getWeightByName(country.get(1));
-                        if (weight != null) {
-                            double skts = (double) year2024.get(1) / weight[2];
-                            if (c > b && Collections.min(countrySkts) == skts) {
-                                arrResult.add("Мера 3: Введение антидемпинговой пошлины");
-                            } else if (c > b && Collections.min(countrySkts) < skts) {
-                                arrResult.add("Мера 6: Поддержка экспорта продукции");
-                            }
-                        }
-                    } else if (dutyRates == dutyRatesBto && production[2] >= consumption[2]) {
-                        if (production[2] < consumption[2]) {
-                            arrResult.add("Мера 6: Поддержка экспорта продукции");
-                        } else if (production[2] >= consumption[2]) {
-                            if (purchases) {
-                                arrResult.add("Мера 6: Поддержка экспорта продукции");
-                            } else {
-                                arrResult.add("Мера 4: Введение тарифной квоты");
-                            }
-                            if (certification && order) {
-                                arrResult.add("Мера 5: Техническое регулирование и сертификация");
-                            } else {
-                                arrResult.add("Мера 6: Поддержка экспорта продукции");
-                            }
-                        }
-                    }
-                }
+            Map<String, Object> productionData = new HashMap<>();
+            productionData.put("2022", production[0] / 1000.0 + " млн $");
+            productionData.put("2023", production[1] / 1000.0 + " млн $");
+            productionData.put("2024", production[2] / 1000.0 + " млн $");
+            result.put("production", productionData);
+
+            Map<String, Object> consumptionData = new HashMap<>();
+            consumptionData.put("2022", consumption[0] / 1000.0 + " млн $");
+            consumptionData.put("2023", consumption[1] / 1000.0 + " млн $");
+            consumptionData.put("2024", consumption[2] / 1000.0 + " млн $");
+            result.put("consumption", consumptionData);
+
+            Map<String, List<String>> measureCountries = determineMeasuresByAlgorithm();
+            for (Map.Entry<String, List<String>> entry : measureCountries.entrySet()) {
+                Map<String, Object> measureData = new HashMap<>();
+                measureData.put("type", entry.getKey());
+                measureData.put("countries", entry.getValue());
+                measureData.put("description", getMeasureDescription(entry.getKey()));
+                measuresList.add(measureData);
             }
 
-            measuresList.addAll(arrResult);
+            List<Map<String, Object>> topSkts = calculateTopSkts();
+            result.put("topSkts", topSkts);
+
         } else {
-            measuresList.add("Товар с кодом " + codeEas + " не найден в базе данных");
+            Map<String, Object> errorMeasure = new HashMap<>();
+            errorMeasure.put("type", "Ошибка");
+            errorMeasure.put("countries", Collections.emptyList());
+            errorMeasure.put("description", "Товар с кодом " + codeEas + " не найден в базе данных");
+            measuresList.add(errorMeasure);
         }
 
         result.put("measures", measuresList);
-        result.put("productCode", codeEas);
-        result.put("productName", product != null ? product : "Неизвестный товар");
+        result.put("productCode", codeEas.substring(0, codeEas.length() - 2) + " " + codeEas.substring(codeEas.length() - 2));
         result.put("status", product != null ? "success" : "error");
 
         if (product != null) {
             result.put("importVolume", year2024 != null && !year2024.isEmpty() ?
-                    year2024.get(1) + " ед." : "Нет данных");
+                    year2024.getFirst() / 1000 + " тыс. ед." : "Нет данных");
             result.put("dynamics", calculateDynamics());
-            result.put("dutyRate", dutyRates + "%");
+            result.put("dutyRate", dutyRates / 1000.0 + "%");
+
+            result.put("analysisData", getAnalysisData());
         }
 
         return result;
     }
 
+    private List<Map<String, Object>> calculateTopSkts() {
+        List<Map<String, Object>> topSktsList = new ArrayList<>();
 
-    private String calculateDynamics() {
-        if (year2022 == null || year2023 == null || year2024 == null) {
-            return "Нет данных";
+        if (year2024.size() <= 1) {
+            return topSktsList;
         }
 
-        int prevYear = year2023.get(1);
-        int currentYear = year2024.get(1);
+        List<SktsData> sktsDataList = new ArrayList<>();
 
-        if (prevYear == 0) return "Нет данных";
+        for (int i = 1; i < year2024.size(); i++) {
+            String countryName = country.get(i);
+            int importVolume = year2024.get(i);
+            int[] weight = getWeightByName(countryName);
 
-        double change = ((double) (currentYear - prevYear) / prevYear) * 100;
-        return String.format("%.1f%%", change);
+            if (weight != null && weight.length >= 3 && weight[2] > 0 && importVolume > 0) {
+                double skts = (double) importVolume / weight[2]; // SKTS = стоимость / вес
+                sktsDataList.add(new SktsData(countryName, skts, importVolume, weight[2]));
+            }
+        }
+
+        sktsDataList.sort((a, b) -> Double.compare(b.skts, a.skts));
+
+        int count = Math.min(10, sktsDataList.size());
+        for (int i = 0; i < count; i++) {
+            SktsData data = sktsDataList.get(i);
+            Map<String, Object> countryData = new HashMap<>();
+            countryData.put("country", data.countryName);
+            countryData.put("skts", String.format("%.2f", data.skts));
+            countryData.put("importVolume", data.importVolume / 1000 + " тыс. ед.");
+            countryData.put("weight", data.weight + " кг");
+            countryData.put("rank", i + 1);
+            topSktsList.add(countryData);
+        }
+
+        return topSktsList;
     }
 
-    private void initializationCountrySkts() {
-        for (int i = 1; i < year2024.size(); i++) {
-            int[] weight = getWeightByName(country.get(i));
-            assert weight != null;
-            countrySkts.add((double) year2024.get(i) / weight[2]);
+    private static class SktsData {
+        String countryName;
+        double skts;
+        int importVolume;
+        int weight;
+
+        SktsData(String countryName, double skts, int importVolume, int weight) {
+            this.countryName = countryName;
+            this.skts = skts;
+            this.importVolume = importVolume;
+            this.weight = weight;
         }
+    }
+
+    private Map<String, List<String>> determineMeasuresByAlgorithm() {
+        Map<String, List<String>> measureCountries = new HashMap<>();
+
+        double unfriendlyShare = calculateUnfriendlyShare();
+        boolean unfriendlyImportGrowing = isUnfriendlyImportGrowing();
+
+        // 4.1
+        if (unfriendlyShare >= 30.0 && unfriendlyImportGrowing) {
+            System.out.println("Применяется Шаг 4.1 (доля НС >= 30%)");
+            // 4.1.1
+            if (production[2] >= consumption[2]) {
+                // 4.1.1.1
+                System.out.println("Применяется Мера 2");
+                measureCountries.put("Мера 2: Введение специальных защитных мер",
+                        Arrays.asList("Все страны"));
+            } else {
+                // 4.1.1.2
+                System.out.println("Применяется Мера 6");
+                measureCountries.put("Мера 6: Поддержка экспорта продукции",
+                        getFriendlyCountries());
+            }
+        }
+        // 4.2
+        else {
+            if (production[2] >= consumption[2]) {
+                measureCountries = analyzeNonTariffMeasures();
+            } else {
+                measureCountries.put("Мера 6: Поддержка экспорта продукции",
+                        getFriendlyCountries());
+            }
+        }
+
+        if (measureCountries.isEmpty()) {
+            measureCountries.put("Мера 6: Поддержка экспорта продукции",
+                    getFriendlyCountries());
+        }
+
+        return measureCountries;
+    }
+
+    private boolean isUnfriendlyImportGrowing() {
+        int unfriendly2023 = getUnfriendlyImportForYear(2023);
+        int unfriendly2024 = getUnfriendlyImportForYear(2024);
+
+        return unfriendly2024 >= unfriendly2023; // Не падает или растет
+    }
+
+    private Map<String, Object> getAnalysisData() {
+        Map<String, Object> analysis = new HashMap<>();
+        analysis.put("unfriendlyShare", String.format("%.1f%%", calculateUnfriendlyShare()));
+        analysis.put("unfriendlyImportGrowing", isUnfriendlyImportGrowing());
+        analysis.put("totalImportGrowing", isTotalImportGrowing());
+        analysis.put("productionVsConsumption", production[2] >= consumption[2] ? "Производство ≥ Потреблению" : "Производство < Потреблению");
+        analysis.put("governmentPurchases", purchases ? "Да" : "Нет");
+        analysis.put("certification", certification ? "Да" : "Нет");
+        analysis.put("ministryOrder", order ? "Да" : "Нет");
+        return analysis;
+    }
+
+    private Map<String, List<String>> analyzeNonTariffMeasures() {
+        Map<String, List<String>> measures = new HashMap<>();
+
+        // 1.1
+        if (production[2] < consumption[2]) {
+            measures.put("Мера 6: Поддержка экспорта продукции", getFriendlyCountries());
+        }
+        // 1.2
+        else {
+            // 1.2.1
+            if (!purchases) {
+                measures.put("Мера 4: Введение тарифной квоты", Arrays.asList("Все страны"));
+            }
+            // 1.2.2
+            else if (certification && order) {
+                measures.put("Мера 5: Техническое регулирование и сертификация",
+                        Arrays.asList("Все страны"));
+            } else {
+                measures.put("Мера 6: Поддержка экспорта продукции", getFriendlyCountries());
+            }
+        }
+
+        return measures;
+    }
+
+    private double calculateUnfriendlyShare() {
+        if (year2024.isEmpty() || year2024.size() <= 1) return 0.0;
+
+        int totalImport = year2024.getFirst(); // Первый элемент - общий импорт
+        int unfriendlyImport = getUnfriendlyImportForYear(2024);
+
+        return totalImport > 0 ? (double) unfriendlyImport / totalImport * 100 : 0.0;
+    }
+
+    private boolean isTotalImportGrowing() {
+        if (year2023.isEmpty() || year2024.isEmpty()) return false;
+        return year2024.getFirst() > year2023.getFirst();
+    }
+
+    private int getUnfriendlyImportForYear(int year) {
+        List<Integer> yearData = getYearData(year);
+        if (yearData == null || yearData.size() <= 1) return 0;
+
+        int total = 0;
+        List<String> unfriendlyCountryNames = getUnfriendlyCountryNames();
+
+        for (int i = 1; i < yearData.size(); i++) {
+            String countryName = country.get(i);
+            if (isUnfriendlyCountry(countryName)) {
+                int importValue = yearData.get(i);
+                total += importValue;
+            }
+        }
+
+        return total;
+    }
+
+    private List<Integer> getYearData(int year) {
+        switch (year) {
+            case 2022: return year2022;
+            case 2023: return year2023;
+            case 2024: return year2024;
+            default: return null;
+        }
+    }
+
+    private boolean isUnfriendlyCountry(String countryName) {
+        return getUnfriendlyCountryNames().contains(countryName);
+    }
+
+    private List<String> getFriendlyCountries() {
+        List<String> allCountries = new ArrayList<>(country);
+        if (!allCountries.isEmpty()) {
+            allCountries.remove(0);
+        }
+        allCountries.removeAll(getUnfriendlyCountryNames());
+        return allCountries.isEmpty() ? Arrays.asList("Belarus", "China", "Türkiye", "Kazakhstan") : allCountries;
+    }
+
+    private List<String> getUnfriendlyCountryNames() {
+        return Arrays.stream(UnfriendlyCountry.values())
+                .map(UnfriendlyCountry::getName)
+                .collect(Collectors.toList());
+    }
+
+    private String getMeasureDescription(String measure) {
+        Map<String, String> descriptions = Map.of(
+                "Мера 1: Снижение ставки ввозной таможенной пошлины", "Снижение ставки ввозной таможенной пошлины для стимулирования импорта",
+                "Мера 2: Введение специальных защитных мер", "Введение специальных защитных мер для защиты внутреннего рынка",
+                "Мера 3: Введение антидемпинговой пошлины", "Введение антидемпинговой пошлины против недобросовестной конкуренции",
+                "Мера 4: Введение тарифной квоты", "Введение тарифной квоты для регулирования объемов импорта",
+                "Мера 5: Техническое регулирование и сертификация", "Техническое регулирование и сертификация продукции",
+                "Мера 6: Поддержка экспорта продукции", "Поддержка экспорта продукции российских производителей"
+        );
+        return descriptions.getOrDefault(measure, "Рекомендация по таможенно-тарифному регулированию");
+    }
+
+    private void clearArrays() {
+        country.clear();
+        year2022.clear();
+        year2023.clear();
+        year2024.clear();
+    }
+
+    private Map<String, String> calculateDynamics() {
+        Map<String, String> dynamics = new HashMap<>();
+
+        if (year2022.size() <= 1 || year2023.size() <= 1 || year2024.size() <= 1) {
+            dynamics.put("2022-2023", "Нет данных");
+            dynamics.put("2023-2024", "Нет данных");
+            return dynamics;
+        }
+
+        int import2022 = year2022.getFirst();
+        int import2023 = year2023.getFirst();
+        int import2024 = year2024.getFirst();
+
+        if (import2022 == 0) {
+            dynamics.put("2022-2023", "Нет данных");
+        } else {
+            double change2022_2023 = ((double) (import2023 - import2022) / import2022) * 100;
+            dynamics.put("2022-2023", String.format("%.1f%%", change2022_2023));
+        }
+
+        if (import2023 == 0) {
+            dynamics.put("2023-2024", "Нет данных");
+        } else {
+            double change2023_2024 = ((double) (import2024 - import2023) / import2023) * 100;
+            dynamics.put("2023-2024", String.format("%.1f%%", change2023_2024));
+        }
+
+        return dynamics;
     }
 
     private int[] getWeightByName(String name) {
@@ -133,31 +344,46 @@ public class ProductService implements IProductService {
             Resource resource = new ClassPathResource("data/" + product + ".xlsx");
             if (!resource.exists()) {
                 System.out.println("File data/" + product + ".xlsx not found");
+                return null;
             }
             try (InputStream inputStream = resource.getInputStream();
                  Workbook workbook = new XSSFWorkbook(inputStream)) {
                 Sheet sheet = workbook.getSheetAt(1);
                 Iterator<Row> rowIterator = sheet.rowIterator();
-                rowIterator.next();
-                int[] weight = new int[3];
-                while (rowIterator.hasNext()) {
-                    Row row = rowIterator.next();
-                    Iterator<Cell> cellIterator = row.cellIterator();
-                    if (cellIterator.next().getStringCellValue().equals(name)) {
-                        int c = 0;
-                        cellIterator.next();
-                        while (cellIterator.hasNext()) {
-                            weight[c] = Integer.parseInt(cellIterator.next().toString());
-                        }
-                    }
+
+                if (rowIterator.hasNext()) {
+                    rowIterator.next();
                 }
 
-                return weight;
+                while (rowIterator.hasNext()) {
+                    Row row = rowIterator.next();
+                    Cell nameCell = row.getCell(0);
+                    if (nameCell != null && name.equals(nameCell.getStringCellValue())) {
+                        int[] weight = new int[3];
+                        for (int i = 0; i < 3; i++) {
+                            Cell weightCell = row.getCell(i + 1);
+                            if (weightCell != null) {
+                                switch (weightCell.getCellType()) {
+                                    case NUMERIC:
+                                        weight[i] = (int) weightCell.getNumericCellValue();
+                                        break;
+                                    case STRING:
+                                        String value = weightCell.getStringCellValue().trim();
+                                        weight[i] = value.isEmpty() ? 0 : (int) Double.parseDouble(value);
+                                        break;
+                                    default:
+                                        weight[i] = 0;
+                                }
+                            }
+                        }
+                        return weight;
+                    }
+                }
             }
         } catch (Exception e) {
-            System.out.println("File not found");
-            return null;
+            System.out.println("Error reading weight for country: " + name + ", error: " + e.getMessage());
         }
+        return null;
     }
 
     private void initializationData() {
@@ -239,7 +465,7 @@ public class ProductService implements IProductService {
         String[] parts = text.split("\\d{4} - ");
         for (int i = 1; i < parts.length && i - 1 < result.length; i++) {
             String numberPart = parts[i].split(" ")[0].trim();
-            result[i - 1] = (int) (Double.parseDouble(numberPart) * 1000); // Конвертируем в тысячи
+            result[i - 1] = (int) (Double.parseDouble(numberPart) * 1000);
         }
     }
 
@@ -252,9 +478,9 @@ public class ProductService implements IProductService {
             }
             try (InputStream inputStream = resource.getInputStream();
                  Workbook workbook = new XSSFWorkbook(inputStream)) {
-                Sheet sheet = workbook.getSheetAt(0); // Лист1
+                Sheet sheet = workbook.getSheetAt(0);
                 Iterator<Row> rowIterator = sheet.rowIterator();
-                rowIterator.next(); // Пропускаем заголовок
+                rowIterator.next();
 
                 country.clear();
                 year2022.clear();
@@ -285,10 +511,9 @@ public class ProductService implements IProductService {
 
     private int getNumericValueFromCell(Cell cell) {
         if (cell == null) return 0;
-
         switch (cell.getCellType()) {
             case NUMERIC:
-                return (int) (cell.getNumericCellValue() * 1000); // Конвертируем в тысячи
+                return (int) (cell.getNumericCellValue() * 1000);
             case STRING:
                 String value = cell.getStringCellValue().trim();
                 if (value.isEmpty()) return 0;
@@ -323,13 +548,5 @@ public class ProductService implements IProductService {
 
     private void setProduct(String product) {
         this.product = product;
-    }
-
-    private void setDutyRates(int dutyRates) {
-        this.dutyRates = dutyRates;
-    }
-
-    private void setDutyRatesBto(int dutyRatesBto) {
-        this.dutyRatesBto = dutyRatesBto;
     }
 }

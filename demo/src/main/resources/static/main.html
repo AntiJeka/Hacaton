@@ -259,13 +259,6 @@
             border-left: 4px solid #d63031;
         }
 
-        .next-steps {
-            background: #e8f4ff;
-            border-radius: 10px;
-            padding: 25px;
-            margin-top: 30px;
-        }
-
         .next-steps h3 {
             color: var(--primary);
             margin-bottom: 15px;
@@ -339,10 +332,11 @@
                     <h2>Результаты анализа</h2>
                 </div>
 
+                <!-- Основная статистика -->
                 <div class="stat-card">
                     <div class="stat-title">
                         <i class="fas fa-chart-line"></i>
-                        <span>Статистика по коду ТН ВЭД</span>
+                        <span>Основная статистика</span>
                     </div>
 
                     <div class="stat-grid">
@@ -351,20 +345,143 @@
                             <div class="stat-label">Код ТН ВЭД</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value" id="statImport">-</div>
-                            <div class="stat-label">Объем импорта (2024)</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="statDynamics">-</div>
-                            <div class="stat-label">Динамика импорта</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value" id="statDuty">-</div>
-                            <div class="stat-label">Ставка пошлины</div>
+                            <div class="stat-value" id="statProductName">-</div>
+                            <div class="stat-label">Наименование товара</div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Аналитические данные -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-chart-bar"></i>
+                        <span>Аналитические показатели</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statUnfriendlyShare">-</div>
+                            <div class="stat-label">Доля недружественных стран</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statProductionVsConsumption">-</div>
+                            <div class="stat-label">Производство vs Потребление</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Объем импорта -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-download"></i>
+                        <span>Объем импорта</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statImport">-</div>
+                            <div class="stat-label">Объем импорта (2024)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statDynamics2022_2023">-</div>
+                            <div class="stat-label">Динамика импорта 2022-2023</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statDynamics2023_2024">-</div>
+                            <div class="stat-label">Динамика импорта 2023-2024</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Тарифная информация -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-percentage"></i>
+                        <span>Тарифная информация</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCustomsDuty">-</div>
+                            <div class="stat-label">Ставка таможенной пошлины</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statWtoDuty">-</div>
+                            <div class="stat-label">Ставка пошлины ВТО</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Производство -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-industry"></i>
+                        <span>Объем производства (млн $)</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statProd2022">-</div>
+                            <div class="stat-label">2022 год</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statProd2023">-</div>
+                            <div class="stat-label">2023 год</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statProd2024">-</div>
+                            <div class="stat-label">2024 год</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Потребление -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span>Объем потребления (млн $)</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCons2022">-</div>
+                            <div class="stat-label">2022 год</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCons2023">-</div>
+                            <div class="stat-label">2023 год</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCons2024">-</div>
+                            <div class="stat-label">2024 год</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Нормативная информация -->
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-balance-scale"></i>
+                        <span>Нормативная информация</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCertification">-</div>
+                            <div class="stat-label">Сертификация</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statGovPurchases">-</div>
+                            <div class="stat-label">Госзакупки</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statMinistryOrder">-</div>
+                            <div class="stat-label">Приказ Минпромторга</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Меры -->
                 <div class="measures">
                     <div class="stat-title">
                         <i class="fas fa-clipboard-list"></i>
@@ -372,13 +489,16 @@
                     </div>
 
                     <div id="measuresList">
-                        <!-- Меры будут добавлены здесь -->
                     </div>
                 </div>
 
-                <div class="next-steps">
-                    <h3><i class="fas fa-forward"></i> Дальнейшие действия</h3>
-                    <p>Используя полученную информацию, сформируйте обращение в АНО «Моспром» с приложением этих данных для содействия в формировании пакета документов для инициирования рассмотрения вопроса на уровне федеральных органов исполнительной власти.</p>
+                <!-- Топ-10 стран по СКЦ -->
+                <div class="stat-card" id="topSktsSection" style="display: none;">
+                    <div class="stat-title">
+                        <i class="fas fa-trophy"></i>
+                        <span>Топ-10 стран по СКЦ</span>
+                    </div>
+                    <div id="topSktsList"></div>
                 </div>
             </div>
         </div>
@@ -386,7 +506,7 @@
 
     <footer>
         <p>Система разработана для поддержки предприятий в вопросах таможенно-тарифного регулирования</p>
-        <p>© 2023 АНО «Моспром»</p>
+        <p>© 2025 АНО «Моспром»</p>
     </footer>
 </div>
 
@@ -401,13 +521,13 @@
         resultsDiv.style.display = 'none';
 
         if (!tnvedCode) {
-            showError('Пожалуйста, заполните все поля');
+            showError('Пожалуйста, введите код ТН ВЭД');
             return;
         }
 
         const cleanedCode = tnvedCode.replace(/\s/g, '');
-        if (cleanedCode.length !== 6) {
-            showError('Код ТН ВЭД должен содержать 6 цифр (например: 842810 или 8428 10)');
+        if (cleanedCode.length !== 6 && cleanedCode.length !== 10) {
+            showError('Код ТН ВЭД должен содержать 6 или 10 цифр (например: 842810 или 8428101000)');
             return;
         }
 
@@ -429,7 +549,7 @@
             .then(data => {
                 loadingDiv.style.display = 'none';
 
-                if (data.status === 'success') {
+                if (data.status === 'success' || (data.measures && data.measures.length > 0 && !data.measures[0].includes('не найден'))) {
                     displayResults(data);
                 } else {
                     showError(data.measures && data.measures.length > 0 ?
@@ -449,44 +569,158 @@
 
         measuresList.innerHTML = '';
 
-        document.getElementById('statCode').textContent = data.productCode;
+        document.getElementById('statCode').textContent = data.productCode || '-';
+        document.getElementById('statProductName').textContent = data.productName || '-';
         document.getElementById('statImport').textContent = data.importVolume || 'Нет данных';
-        document.getElementById('statDynamics').textContent = data.dynamics || 'Нет данных';
-        document.getElementById('statDuty').textContent = data.dutyRate || 'Нет данных';
+
+        if (data.dynamics) {
+            document.getElementById('statDynamics2022_2023').textContent = data.dynamics['2022-2023'] || 'Нет данных';
+            document.getElementById('statDynamics2023_2024').textContent = data.dynamics['2023-2024'] || 'Нет данных';
+        } else {
+            document.getElementById('statDynamics2022_2023').textContent = 'Нет данных';
+            document.getElementById('statDynamics2023_2024').textContent = 'Нет данных';
+        }
+
+        document.getElementById('statCustomsDuty').textContent = data.customsDutyRate || data.dutyRate || '-';
+        document.getElementById('statWtoDuty').textContent = data.wtoDutyRate || '-';
+
+        if (data.analysisData) {
+            document.getElementById('statUnfriendlyShare').textContent = data.analysisData.unfriendlyShare || '-';
+            document.getElementById('statProductionVsConsumption').textContent = data.analysisData.productionVsConsumption || '-';
+        }
+
+        if (data.production) {
+            document.getElementById('statProd2022').textContent = formatProductionValue(data.production['2022']);
+            document.getElementById('statProd2023').textContent = formatProductionValue(data.production['2023']);
+            document.getElementById('statProd2024').textContent = formatProductionValue(data.production['2024']);
+        } else {
+            document.getElementById('statProd2022').textContent = '-';
+            document.getElementById('statProd2023').textContent = '-';
+            document.getElementById('statProd2024').textContent = '-';
+        }
+
+        if (data.consumption) {
+            document.getElementById('statCons2022').textContent = formatConsumptionValue(data.consumption['2022']);
+            document.getElementById('statCons2023').textContent = formatConsumptionValue(data.consumption['2023']);
+            document.getElementById('statCons2024').textContent = formatConsumptionValue(data.consumption['2024']);
+        } else {
+            document.getElementById('statCons2022').textContent = '-';
+            document.getElementById('statCons2023').textContent = '-';
+            document.getElementById('statCons2024').textContent = '-';
+        }
+
+        document.getElementById('statCertification').textContent = data.certification || '-';
+        document.getElementById('statGovPurchases').textContent = data.governmentPurchases || '-';
+        document.getElementById('statMinistryOrder').textContent = data.ministryOrder || '-';
 
         if (data.measures && data.measures.length > 0) {
-            data.measures.forEach((measure, index) => {
+            data.measures.forEach((measureData, index) => {
                 const measureItem = document.createElement('div');
                 measureItem.className = 'measure-item';
+
+                let icon = 'fa-balance-scale';
+                if (measureData.type.includes('Мера 1')) icon = 'fa-arrow-down';
+                if (measureData.type.includes('Мера 2')) icon = 'fa-shield-alt';
+                if (measureData.type.includes('Мера 3')) icon = 'fa-gavel';
+                if (measureData.type.includes('Мера 4')) icon = 'fa-chart-bar';
+                if (measureData.type.includes('Мера 5')) icon = 'fa-cogs';
+                if (measureData.type.includes('Мера 6')) icon = 'fa-handshake';
+
+                const countriesText = measureData.countries && measureData.countries.length > 0
+                    ? measureData.countries.join(', ')
+                    : 'Не определено';
+
                 measureItem.innerHTML = `
                 <div class="measure-icon">
-                    <i class="fas fa-balance-scale"></i>
+                    <i class="fas ${icon}"></i>
                 </div>
                 <div class="measure-content">
-                    <h3>${measure}</h3>
-                    <p>Рекомендация по таможенно-тарифному регулированию</p>
+                    <h3>${measureData.type}</h3>
+                    <p><strong>Описание:</strong> ${measureData.description || getMeasureDescription(measureData.type)}</p>
+                    <p><strong>Охват стран:</strong> ${countriesText}</p>
                 </div>
             `;
                 measuresList.appendChild(measureItem);
             });
         } else {
-            measuresList.innerHTML = '<p>Нет рекомендуемых мер для данного товара</p>';
+            measuresList.innerHTML = '<div class="measure-item"><div class="measure-content"><p>Нет рекомендуемых мер для данного товара</p></div></div>';
+        }
+
+        if (data.topSkts && data.topSkts.length > 0) {
+            const topSktsSection = document.getElementById('topSktsSection');
+            const topSktsList = document.getElementById('topSktsList');
+
+            let html = '<div class="stat-grid" style="grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));">';
+            data.topSkts.forEach((item, index) => {
+                html += `
+                <div class="stat-item">
+                    <div class="stat-value">${item.rank}. ${item.country}</div>
+                    <div class="stat-label">СКЦ: ${item.skts} $/кг</div>
+                    <div class="stat-label">Импорт: ${item.importVolume}</div>
+                    <div class="stat-label">Вес: ${item.weight}</div>
+                </div>
+            `;
+            });
+            html += '</div>';
+            topSktsList.innerHTML = html;
+            topSktsSection.style.display = 'block';
+        } else {
+            document.getElementById('topSktsSection').style.display = 'none';
         }
 
         resultsDiv.style.display = 'block';
         resultsDiv.scrollIntoView({behavior: 'smooth'});
     }
 
+    function formatProductionValue(value) {
+        if (!value || value === '-') return '-';
+        return value.toString().replace(' млн $', '') + ' млн $';
+    }
+
+    function formatConsumptionValue(value) {
+        if (!value || value === '-') return '-';
+        return value.toString().replace(' млн $', '') + ' млн $';
+    }
+
+    function getMeasureDescription(measure) {
+        const descriptions = {
+            'Мера 1': 'Снижение ставки ввозной таможенной пошлины для стимулирования импорта',
+            'Мера 2': 'Введение специальных защитных мер для защиты внутреннего рынка',
+            'Мера 3': 'Введение антидемпинговой пошлины против недобросовестной конкуренции',
+            'Мера 4': 'Введение тарифной квоты для регулирования объемов импорта',
+            'Мера 5': 'Техническое регулирование и сертификация продукции',
+            'Мера 6': 'Поддержка экспорта продукции российских производителей'
+        };
+
+        for (const [key, description] of Object.entries(descriptions)) {
+            if (measure.includes(key)) {
+                return description;
+            }
+        }
+        return 'Рекомендация по таможенно-тарифному регулированию';
+    }
+
     function showError(message) {
         const errorDiv = document.getElementById('error');
         errorDiv.textContent = message;
         errorDiv.style.display = 'block';
+        errorDiv.scrollIntoView({behavior: 'smooth'});
     }
 
     document.getElementById('tnvedCode').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             document.getElementById('analyzeBtn').click();
         }
+    });
+
+    document.getElementById('tnvedCode').addEventListener('focus', function() {
+        if (!this.value) {
+            this.placeholder = 'Например: 842810, 330300, 847290';
+        }
+    });
+
+    document.getElementById('tnvedCode').addEventListener('blur', function() {
+        this.placeholder = 'Введите код ТН ВЭД (6 или 10 знаков)';
     });
 </script>
 </body>
