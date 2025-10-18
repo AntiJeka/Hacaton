@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Анализ ТН ВЭД | Система поддержки предприятий</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #2c5aa0;
+            --primary-light: #4a76c6;
+            --secondary: #f8f9fa;
+            --accent: #ff6b35;
+            --text: #333;
+            --text-light: #6c757d;
+            --border: #e0e0e0;
+            --success: #28a745;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding: 20px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .logo i {
+            font-size: 2.5rem;
+            color: var(--primary);
+        }
+
+        h1 {
+            color: var(--primary);
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+        }
+
+        .subtitle {
+            color: var(--text-light);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            color: var(--primary);
+            font-size: 1.4rem;
+        }
+
+        .card-title i {
+            font-size: 1.6rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid var(--border);
+            border-radius: 8px;
+            font-size: 16px;
+            transition: all 0.3s;
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .btn:hover {
+            background: var(--primary-light);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(44, 90, 160, 0.2);
+        }
+
+        .btn-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+            justify-content: center;
+        }
+
+        .results {
+            display: none;
+        }
+
+        .stat-card {
+            background: var(--secondary);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .stat-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .stat-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-light);
+        }
+
+        .measures {
+            margin-top: 30px;
+        }
+
+        .measure-item {
+            background: white;
+            border-left: 4px solid var(--primary);
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: 0 8px 8px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .measure-icon {
+            background: var(--primary);
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .measure-content h3 {
+            margin-bottom: 5px;
+            color: var(--primary);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 30px;
+            display: none;
+        }
+
+        .spinner {
+            border: 5px solid rgba(44, 90, 160, 0.2);
+            border-radius: 50%;
+            border-top: 5px solid var(--primary);
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: #ffeaea;
+            color: #d63031;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            display: none;
+            border-left: 4px solid #d63031;
+        }
+
+        .next-steps {
+            background: #e8f4ff;
+            border-radius: 10px;
+            padding: 25px;
+            margin-top: 30px;
+        }
+
+        .next-steps h3 {
+            color: var(--primary);
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            color: var(--text-light);
+            font-size: 0.9rem;
+            padding: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                padding: 20px;
+            }
+
+            .stat-grid {
+                grid-template-columns: 1fr;
+            }
+
+            h1 {
+                font-size: 1.8rem;
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <header>
+        <div class="logo">
+            <i class="fas fa-chart-line"></i>
+        </div>
+        <h1>Система анализа ТН ВЭД</h1>
+        <p class="subtitle">Получите рекомендации по мерам таможенно-тарифного регулирования для вашего товара</p>
+    </header>
+
+    <main>
+        <div class="card">
+            <div class="card-title">
+                <i class="fas fa-search"></i>
+                <h2>Анализ товара</h2>
+            </div>
+
+            <div class="form-group">
+                <label for="tnvedCode">Код ТН ВЭД</label>
+                <input type="text" id="tnvedCode" placeholder="Введите код ТН ВЭД (6 или 10 знаков)" maxlength="11">
+            </div>
+
+            <button class="btn btn-block" id="analyzeBtn">
+                <i class="fas fa-chart-bar"></i>
+                Провести анализ
+            </button>
+
+            <div class="error" id="error"></div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Идет анализ данных. Пожалуйста, подождите...</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="card">
+                <div class="card-title">
+                    <i class="fas fa-poll"></i>
+                    <h2>Результаты анализа</h2>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-title">
+                        <i class="fas fa-chart-line"></i>
+                        <span>Статистика по коду ТН ВЭД</span>
+                    </div>
+
+                    <div class="stat-grid">
+                        <div class="stat-item">
+                            <div class="stat-value" id="statCode">-</div>
+                            <div class="stat-label">Код ТН ВЭД</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statImport">-</div>
+                            <div class="stat-label">Объем импорта (2024)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statDynamics">-</div>
+                            <div class="stat-label">Динамика импорта</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value" id="statDuty">-</div>
+                            <div class="stat-label">Ставка пошлины</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="measures">
+                    <div class="stat-title">
+                        <i class="fas fa-clipboard-list"></i>
+                        <span>Рекомендуемые меры регулирования</span>
+                    </div>
+
+                    <div id="measuresList">
+                        <!-- Меры будут добавлены здесь -->
+                    </div>
+                </div>
+
+                <div class="next-steps">
+                    <h3><i class="fas fa-forward"></i> Дальнейшие действия</h3>
+                    <p>Используя полученную информацию, сформируйте обращение в АНО «Моспром» с приложением этих данных для содействия в формировании пакета документов для инициирования рассмотрения вопроса на уровне федеральных органов исполнительной власти.</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>Система разработана для поддержки предприятий в вопросах таможенно-тарифного регулирования</p>
+        <p>© 2023 АНО «Моспром»</p>
+    </footer>
+</div>
+
+<script>
+    document.getElementById('analyzeBtn').addEventListener('click', function() {
+        const tnvedCode = document.getElementById('tnvedCode').value.trim();
+        const errorDiv = document.getElementById('error');
+        const loadingDiv = document.getElementById('loading');
+        const resultsDiv = document.getElementById('results');
+
+        errorDiv.style.display = 'none';
+        resultsDiv.style.display = 'none';
+
+        if (!tnvedCode) {
+            showError('Пожалуйста, заполните все поля');
+            return;
+        }
+
+        const cleanedCode = tnvedCode.replace(/\s/g, '');
+        if (cleanedCode.length !== 6) {
+            showError('Код ТН ВЭД должен содержать 6 цифр (например: 842810 или 8428 10)');
+            return;
+        }
+
+        loadingDiv.style.display = 'block';
+
+        fetch('/main/analiz', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(cleanedCode)
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка сервера: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                loadingDiv.style.display = 'none';
+
+                if (data.status === 'success') {
+                    displayResults(data);
+                } else {
+                    showError(data.measures && data.measures.length > 0 ?
+                        data.measures[0] : 'Ошибка при анализе данных');
+                }
+            })
+            .catch(error => {
+                loadingDiv.style.display = 'none';
+                showError('Ошибка при анализе: ' + error.message);
+                console.error('Error:', error);
+            });
+    });
+
+    function displayResults(data) {
+        const resultsDiv = document.getElementById('results');
+        const measuresList = document.getElementById('measuresList');
+
+        measuresList.innerHTML = '';
+
+        document.getElementById('statCode').textContent = data.productCode;
+        document.getElementById('statImport').textContent = data.importVolume || 'Нет данных';
+        document.getElementById('statDynamics').textContent = data.dynamics || 'Нет данных';
+        document.getElementById('statDuty').textContent = data.dutyRate || 'Нет данных';
+
+        if (data.measures && data.measures.length > 0) {
+            data.measures.forEach((measure, index) => {
+                const measureItem = document.createElement('div');
+                measureItem.className = 'measure-item';
+                measureItem.innerHTML = `
+                <div class="measure-icon">
+                    <i class="fas fa-balance-scale"></i>
+                </div>
+                <div class="measure-content">
+                    <h3>${measure}</h3>
+                    <p>Рекомендация по таможенно-тарифному регулированию</p>
+                </div>
+            `;
+                measuresList.appendChild(measureItem);
+            });
+        } else {
+            measuresList.innerHTML = '<p>Нет рекомендуемых мер для данного товара</p>';
+        }
+
+        resultsDiv.style.display = 'block';
+        resultsDiv.scrollIntoView({behavior: 'smooth'});
+    }
+
+    function showError(message) {
+        const errorDiv = document.getElementById('error');
+        errorDiv.textContent = message;
+        errorDiv.style.display = 'block';
+    }
+
+    document.getElementById('tnvedCode').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            document.getElementById('analyzeBtn').click();
+        }
+    });
+</script>
+</body>
+</html>
